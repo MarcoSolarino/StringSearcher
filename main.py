@@ -2,6 +2,7 @@ import sys
 from PyQt5.QtWidgets import QApplication, QWidget, QLineEdit, QVBoxLayout, QPushButton, QLabel
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPixmap
+import shutil
 
 
 class FileContainer(QLabel):
@@ -23,17 +24,17 @@ class FileContainer(QLabel):
         super().setText(string)
 
 
-class TextEditDemo(QWidget):
+class StringSearcherApp(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
 
         self.setWindowTitle("Manuela Finder")
-        self.resize(400, 400)
+        self.resize(500, 500)
         self.setAcceptDrops(True)
 
         self.text_edit = QLineEdit()
         self.file_container = FileContainer()
-        self.submit_btn = QPushButton("Submit")
+        self.submit_btn = QPushButton("Search")
 
         layout = QVBoxLayout()
         layout.addWidget(self.text_edit)
@@ -56,19 +57,24 @@ class TextEditDemo(QWidget):
             event.ignore()
 
     def dropEvent(self, event):
-        # if event.mimeData().hasImage:
-        #     event.setDropAction(Qt.CopyAction)
-        #     file_path = event.mimeData().urls()[0].toLocalFile()
-        #     self.set_image(file_path)
         if event.mimeData().hasUrls():
             files = [(u.toLocalFile()) for u in event.mimeData().urls()]
             for f in files:
-                if 'csv' in f or 'xls' in f:
-                    print('Drag', f)
-                    self.set_text(f)
+                extension = ''
+                if 'csv' in f:
+                    extension = 'csv'
+                elif 'xls' in f:
+                    extension = 'xls'
+                elif 'xlsx' in f:
+                    extension = 'xlsx'
+                if 'csv' in f or 'xls' in f or 'xlsx' in f:
+                    output_string = f'file at location \n{f} \nloaded'
+                    self.set_text(output_string)
+                    shutil.copyfile(f, f'fileToHandle/target.{extension}')
 
             event.accept()
         else:
+            self.set_text("The file you tried to drop is not supported")
             event.ignore()
 
     def set_image(self, file_path):
@@ -83,6 +89,6 @@ class TextEditDemo(QWidget):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    win = TextEditDemo()
+    win = StringSearcherApp()
     win.show()
     sys.exit(app.exec_())
