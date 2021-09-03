@@ -1,3 +1,4 @@
+import os
 import sys
 from PyQt5.QtWidgets import QApplication, QWidget, QLineEdit, QVBoxLayout, QPushButton, QLabel
 from PyQt5.QtCore import Qt
@@ -60,6 +61,7 @@ class StringSearcherApp(QWidget):
         if event.mimeData().hasUrls():
             files = [(u.toLocalFile()) for u in event.mimeData().urls()]
             for f in files:
+                # read the file extension
                 extension = ''
                 if 'csv' in f:
                     extension = 'csv'
@@ -67,10 +69,20 @@ class StringSearcherApp(QWidget):
                     extension = 'xls'
                 elif 'xlsx' in f:
                     extension = 'xlsx'
+
+                # copy the file in fileToHandle folder if it has a supported extension
                 if 'csv' in f or 'xls' in f or 'xlsx' in f:
                     output_string = f'file at location \n{f} \nloaded'
                     self.set_text(output_string)
+
+                    # clean directory and copy the target file
+                    target = 'fileToHandle'
+                    for t in os.listdir(target):
+                        os.remove(os.path.join(target, t))
                     shutil.copyfile(f, f'fileToHandle/target.{extension}')
+
+                else:
+                    self.set_text("The file you tried to drop is not supported")
 
             event.accept()
         else:
