@@ -1,9 +1,13 @@
 import os
+from os import listdir
+from os.path import isfile, join
 import sys
 from PyQt5.QtWidgets import QApplication, QWidget, QLineEdit, QVBoxLayout, QPushButton, QLabel
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPixmap
 import shutil
+import pandas as pd
+import xlrd
 
 
 class FileContainer(QLabel):
@@ -96,7 +100,15 @@ class StringSearcherApp(QWidget):
         self.file_container.setTextInBox(string)
 
     def btn_submit_pressed(self):
+        self.handle_file()
         self.text_edit.setText("Nessuna manueloide trovata")
+
+    def handle_file(self):
+        path = 'fileToHandle'
+        files = [f for f in listdir(path) if isfile(join(path, f))]
+        file = files[0]
+        dataframe = pd.read_excel(path + '/' + file)
+        print('file letto')
 
 
 if __name__ == '__main__':
