@@ -100,15 +100,30 @@ class StringSearcherApp(QWidget):
         self.file_container.setTextInBox(string)
 
     def btn_submit_pressed(self):
-        self.handle_file()
-        self.text_edit.setText("Nessuna manueloide trovata")
+        string_to_search = self.text_edit.text()
+        self.handle_file(string_to_search)
 
-    def handle_file(self):
+    def handle_file(self, string):
         path = 'fileToHandle'
         files = [f for f in listdir(path) if isfile(join(path, f))]
         file = files[0]
         dataframe = pd.read_excel(path + '/' + file)
-        print('file letto')
+        dataframe = dataframe.applymap(lambda s: s.upper() if type(s) == str else s)
+        string = string.upper()
+        row = dataframe[dataframe.isin([string]).any(axis=1)]
+        output = row.to_csv(header=None, index=False).strip('\n').split('\n')
+        output = list_to_string(output)
+        if output == '\n':
+            self.set_text('String NOT found')
+        else:
+            self.set_text(list_to_string(output))
+
+
+def list_to_string(list_of_strings):
+    output = ''
+    for elem in list_of_strings:
+        output += elem + '\n'
+    return output
 
 
 if __name__ == '__main__':
