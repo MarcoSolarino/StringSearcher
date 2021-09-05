@@ -66,16 +66,10 @@ class StringSearcherApp(QWidget):
             files = [(u.toLocalFile()) for u in event.mimeData().urls()]
             for f in files:
                 # read the file extension
-                extension = ''
-                if 'csv' in f:
-                    extension = 'csv'
-                elif 'xls' in f:
-                    extension = 'xls'
-                elif 'xlsx' in f:
-                    extension = 'xlsx'
+                extension = get_file_extension(f)
 
                 # copy the file in fileToHandle folder if it has a supported extension
-                if 'csv' in f or 'xls' in f or 'xlsx' in f:
+                if self.is_compatible(extension):
                     output_string = f'file at location \n{f} \nloaded'
                     self.set_text(output_string)
 
@@ -93,6 +87,12 @@ class StringSearcherApp(QWidget):
             self.set_text("The file you tried to drop is not supported")
             event.ignore()
 
+    def is_compatible(self, extension):
+        compatible = ['csv', 'xls', 'xlsx', 'xlsm', 'xlsb', 'odf', 'ods', 'odt']
+        if extension in compatible:
+            return True
+        return False
+
     def set_image(self, file_path):
         self.file_container.setPixmap(QPixmap(file_path))
 
@@ -107,7 +107,11 @@ class StringSearcherApp(QWidget):
         path = 'fileToHandle'
         files = [f for f in listdir(path) if isfile(join(path, f))]
         file = files[0]
-        dataframe = pd.read_excel(path + '/' + file)
+
+        if get_file_extension(file) == 'csv':
+            dataframe = pd.read_csv(path + '/' + file)
+        else:
+            dataframe = pd.read_excel(path + '/' + file)
         dataframe = dataframe.applymap(lambda s: s.upper() if type(s) == str else s)
         string = string.upper()
         row = dataframe[dataframe.isin([string]).any(axis=1)]
@@ -116,13 +120,19 @@ class StringSearcherApp(QWidget):
         if output == '\n':
             self.set_text('String NOT found')
         else:
-            self.set_text(list_to_string(output))
+            self.set_text(output)
 
 
 def list_to_string(list_of_strings):
     output = ''
     for elem in list_of_strings:
         output += elem + '\n'
+    return output
+
+
+def get_file_extension(file):
+    split = file.split('.')
+    output = split[1]
     return output
 
 
